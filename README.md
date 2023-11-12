@@ -6,7 +6,7 @@ Current changes (all configurable)
 - Change button visual (picture below)
 - Remove "set to average" and "set to X,Y,Z,W" options (off by default)
 
-![extras button after vs before](https://github.com/art0007i/ExtrasButtonTweaks/assets/19620451/db210a5e-48b3-4c1a-97fd-c0ed475cf5f5)
+![extras button old vs new](https://github.com/art0007i/ExtrasButtonTweaks/assets/19620451/5bb29c7a-ebf8-49f7-92c8-4a350c0f09fb)
 
 ## Installation
 1. Install [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader).
