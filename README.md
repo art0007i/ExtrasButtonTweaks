@@ -5,6 +5,7 @@ A [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoade
 Current changes (all configurable)
 - Change button visual (picture below)
 - Remove "set to average" and "set to X,Y,Z,W" options (off by default)
+- Allow dropping values onto the button [#4313](https://github.com/Yellow-Dog-Man/Resonite-Issues/issues/4313)
 
 ![extras button old vs new](https://github.com/art0007i/ExtrasButtonTweaks/assets/19620451/5bb29c7a-ebf8-49f7-92c8-4a350c0f09fb)
 
