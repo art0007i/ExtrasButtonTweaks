@@ -19,7 +19,7 @@ public class ExtrasButtonTweaks : ResoniteMod
 {
     public override string Name => "ExtrasButtonTweaks";
     public override string Author => "art0007i";
-    public override string Version => "1.0.0";
+    public override string Version => "1.1.0";
     public override string Link => "https://github.com/art0007i/ExtrasButtonTweaks/";
 
     [AutoRegisterConfigKey]
@@ -28,6 +28,8 @@ public class ExtrasButtonTweaks : ResoniteMod
     public static ModConfigurationKey<bool> KEY_VECTOR_AVERAGE = new("vector_actions_average", "When true vector average option will be hidden.", () => false);
     [AutoRegisterConfigKey]
     public static ModConfigurationKey<bool> KEY_VECTOR_SET_TO = new("vector_actions_set_to", "When true vector set to options will be hidden.", () => false);
+    [AutoRegisterConfigKey]
+    public static ModConfigurationKey<bool> KEY_ALLOW_DROP = new("allow_drop", "When true you can drop onto the extras button.", () => true);
 
     public static ModConfiguration config;
 
@@ -37,7 +39,7 @@ public class ExtrasButtonTweaks : ResoniteMod
         Harmony harmony = new Harmony("me.art0007i.ExtrasButtonTweaks");
         //harmony.PatchAll();
 
-        var displayClass = typeof(InspectorMemberActions).GetNestedType("<>c__DisplayClass1_0", AccessTools.all)?
+        var displayClass = typeof(InspectorMemberActions).GetNestedType("<>c__DisplayClass5_0", AccessTools.all)?
             .GetNestedType("<<Pressed>b__0>d", AccessTools.all)?
             .GetMethod(nameof(IAsyncStateMachine.MoveNext), AccessTools.all);
         if(displayClass != null)
@@ -59,6 +61,17 @@ public class ExtrasButtonTweaks : ResoniteMod
             if (newValue is bool b)
             {
                 ApplyPatch(harmony, b, toPatch, patchFunc);
+            }
+        };
+
+        var patchFunc2 = AccessTools.Method(typeof(AllowDropPatch), nameof(AllowDropPatch.Transpiler));
+        ApplyPatch(harmony, config.GetValue(KEY_ALLOW_DROP), toPatch, patchFunc2);
+
+        KEY_ALLOW_DROP.OnChanged += (newValue) =>
+        {
+            if (newValue is bool b)
+            {
+                ApplyPatch(harmony, b, toPatch, patchFunc2);
             }
         };
     }
@@ -149,6 +162,31 @@ public class ExtrasButtonTweaks : ResoniteMod
         {
             if (config.GetValue(KEY_VECTOR_SET_TO)) return 0;
             else return type.GetVectorDimensions();
+        }
+    }
+
+    class AllowDropPatch
+    {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> codes)
+        {
+            var lookFor = AccessTools.Property(typeof(IValueFieldProxySource), nameof(IValueFieldProxySource.Field)).SetMethod;
+            foreach (var code in codes)
+            {
+                if(code.Is(OpCodes.Castclass, typeof(IValueFieldProxySource)))
+                {
+                    yield return new(OpCodes.Dup);
+                }
+                yield return code;
+                if (code.Calls(lookFor))
+                {
+                    yield return new(OpCodes.Call, typeof(AllowDropPatch).GetMethod(nameof(Inject)));
+                }
+            }
+        }
+
+        public static void Inject(IValueFieldProxySource source)
+        {
+            ((IValueReceiver)source.Slot.AttachComponent(typeof(ValueReceiver<>).MakeGenericType(source.GetType().GetGenericArguments()[0]))).TryAssignField(source.Field);
         }
     }
 }
