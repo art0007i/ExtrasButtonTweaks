@@ -19,7 +19,7 @@ public class ExtrasButtonTweaks : ResoniteMod
 {
     public override string Name => "ExtrasButtonTweaks";
     public override string Author => "art0007i";
-    public override string Version => "1.1.0";
+    public override string Version => "1.1.1";
     public override string Link => "https://github.com/art0007i/ExtrasButtonTweaks/";
 
     [AutoRegisterConfigKey]
@@ -86,35 +86,28 @@ public class ExtrasButtonTweaks : ResoniteMod
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> codes)
         {
-            var lookFor = AccessTools.Method(typeof(DatatypeColorHelper), nameof(DatatypeColorHelper.GetTypeColor));
-            var lookForEnd = AccessTools.Method(typeof(DatatypeColorHelper), nameof(DatatypeColorHelper.GetTypeColor));
-            bool purge = false;
+            bool found = false;
             foreach (var code in codes)
             {
-                if (!purge)
+                if (!found && code.operand is MethodInfo mf && mf.Name == "Button")
+                {
+                    found = true;
+                    yield return new(OpCodes.Call, typeof(ExtrasButtonTweaksPatch).GetMethod(nameof(CreateExtrasButton)));
+                }
+                else
                 {
                     yield return code;
-                }
-                if (code.operand is MethodInfo mf && mf.Name == "Button")
-                {
-                    purge = false;
-                }
-                if (code.Calls(lookFor))
-                {
-                    purge = true;
-                    yield return new(OpCodes.Ldarg_2);
-                    yield return new(OpCodes.Call, typeof(ExtrasButtonTweaksPatch).GetMethod(nameof(CreateExtrasButton)));
                 }
             }
         }
 
-        public static Button CreateExtrasButton(colorX color, UIBuilder ui)
+        public static Button CreateExtrasButton(UIBuilder ui, IAssetProvider<Sprite> s, in colorX color, LocaleString text, float buttonTextSplit, float buttonTextSplitGap)
         {
-            color = color.MulRGB(0.75f);
+            var newColor = color.MulRGB(0.66f);
             ui.PushStyle();
             ui.Style.ButtonSprite = RadiantUI_Constants.GetOutlinedSprite(ui.World);
-            ui.Style.ButtonColor = color;
-            var bt = ui.Button("☰", color);
+            ui.Style.ButtonColor = newColor;
+            var bt = ui.Button("☰", newColor);
             ui.PopStyle();
             return bt;
         }
